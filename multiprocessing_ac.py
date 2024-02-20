@@ -28,45 +28,41 @@ time_acs=ACS.variables['time'][:]
 center_lon_acs=ACS.variables['longitude'][:]
 center_lat_acs=ACS.variables['latitude'][:]
 
-def area_limit_acs(i,contour_coordinate_acs,contour_time_acs,contour_index_acs):
+def area_limit_acs(i,contour_coordinate_acs,contour_time_acs):
     if (center_lat_acs[i] >= latmin) and (center_lat_acs[i] <= latmax) and (center_lon_acs[i] >= lonmin) and (center_lon_acs[i] <= lonmax):
-        contour_coordinate_acs.append([ACS.variables['effective_contour_longitude'][i], ACS.variables['effective_contour_latitude'][i]])
-        contour_time_acs.append(time_acs[i])
-        contour_index_acs.append(i)
+        contour_coordinate_acs[i]=[ACS.variables['effective_contour_longitude'][i], ACS.variables['effective_contour_latitude'][i]]
+        contour_time_acs[i]=time_acs[i]
 
 '''--------------------Part for ACL--------------------'''
 time_acl=ACL.variables['time'][:]
 center_lon_acl=ACL.variables['longitude'][:]
 center_lat_acl=ACL.variables['latitude'][:]
 
-def area_limit_acl(i,contour_coordinate_acl,contour_time_acl,contour_index_acl):
+def area_limit_acl(i,contour_coordinate_acl,contour_time_acl):
     if (center_lat_acl[i] >= latmin) and (center_lat_acl[i] <= latmax) and (center_lon_acl[i] >= lonmin) and (center_lon_acl[i] <= lonmax):
-        contour_coordinate_acl.append([ACL.variables['effective_contour_longitude'][i], ACL.variables['effective_contour_latitude'][i]])
-        contour_time_acl.append(time_acl[i])
-        contour_index_acl.append(i)
+        contour_coordinate_acl[i]=[ACL.variables['effective_contour_longitude'][i], ACL.variables['effective_contour_latitude'][i]]
+        contour_time_acl[i]=time_acl[i]
     
 '''--------------------Multiprocessing--------------------'''
 if __name__ == '__main__':
     __spec__ = None
     manager=mp.Manager()
-    contour_coordinate_acs = manager.list()
-    contour_time_acs = manager.list()
-    contour_index_acs = manager.list()
+    contour_coordinate_acs = manager.dict()
+    contour_time_acs = manager.dict()
 
-    contour_coordinate_acl = manager.list()
-    contour_time_acl = manager.list()
-    contour_index_acl = manager.list()
+    contour_coordinate_acl = manager.dict()
+    contour_time_acl = manager.dict()
 
     start_time = tm.time()
 
     num_processes = mp.cpu_count()
     pool = mp.Pool(processes=num_processes)
-    pool.map(partial(area_limit_acs, contour_coordinate_acs=contour_coordinate_acs,contour_time_acs=contour_time_acs,contour_index_acs=contour_index_acs), range(len(time_acs)))
+    pool.map(partial(area_limit_acs, contour_coordinate_acs=contour_coordinate_acs,contour_time_acs=contour_time_acs), range(len(time_acs)))
     pool.close()
     pool.join()
 
     pool = mp.Pool(processes=num_processes)
-    pool.map(partial(area_limit_acl, contour_coordinate_acl=contour_coordinate_acl,contour_time_acl=contour_time_acl,contour_index_acl=contour_index_acl), range(len(time_acl)))
+    pool.map(partial(area_limit_acl, contour_coordinate_acl=contour_coordinate_acl,contour_time_acl=contour_time_acl), range(len(time_acl)))
     pool.close()
     pool.join()
 
@@ -77,10 +73,8 @@ if __name__ == '__main__':
     elapsed_time=end_time-start_time
     print(f"花费时间：{elapsed_time:.2f}s")
     
-    np.save('contour_coordinate_acs',contour_coordinate_acs)
-    np.save('contour_time_acs',contour_time_acs)
-    np.save('contour_index_acs',contour_index_acs)
+    np.save('contour_coordinate_acs',contour_coordinate_acs._getvalue())
+    np.save('contour_time_acs',contour_time_acs._getvalue())
 
-    np.save('contour_coordinate_acl',contour_coordinate_acl)
-    np.save('contour_time_acl',contour_time_acl)
-    np.save('contour_index_acl',contour_index_acl)
+    np.save('contour_coordinate_acl',contour_coordinate_acl._getvalue())
+    np.save('contour_time_acl',contour_time_acl._getvalue())
