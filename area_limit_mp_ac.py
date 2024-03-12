@@ -16,12 +16,12 @@ ACS=Dataset('META3.1exp_DT_allsat_Anticyclonic_short_19930101_20200307.nc')
 ACL=Dataset('META3.1exp_DT_allsat_Anticyclonic_long_19930101_20200307.nc')
 #print(ACL.variables.keys())
 
-SLA=Dataset('../copernicus/cmems_obs-sl_glo_phy-ssh_my_allsat-l4-duacs-0.25deg_P1D_1704119807053.nc')
-#print(SLA.variables.keys())
+# SLA=Dataset('../copernicus/cmems_obs-sl_glo_phy-ssh_my_allsat-l4-duacs-0.25deg_P1D_1704119807053.nc')
+# #print(SLA.variables.keys())
 
-adt=SLA.variables['adt'][:]
-maplat=SLA.variables['latitude'][:]
-maplon=SLA.variables['longitude'][:]
+# adt=SLA.variables['adt'][:]
+# maplat=SLA.variables['latitude'][:]
+# maplon=SLA.variables['longitude'][:]
 
 '''--------------------Part for ACS--------------------'''
 time_acs=ACS.variables['time'][:]
@@ -73,8 +73,15 @@ if __name__ == '__main__':
     elapsed_time=end_time-start_time
     print(f"花费时间：{elapsed_time:.2f}s")
     
-    np.save('contour_coordinate_acs',contour_coordinate_acs._getvalue())
-    np.save('contour_time_acs',contour_time_acs._getvalue())
+    np.save('./Data/contour_coordinate_acs',contour_coordinate_acs._getvalue())
+    np.save('./Data/contour_time_acs',contour_time_acs._getvalue())
 
-    np.save('contour_coordinate_acl',contour_coordinate_acl._getvalue())
-    np.save('contour_time_acl',contour_time_acl._getvalue())
+    np.save('./Data/contour_coordinate_acl',contour_coordinate_acl._getvalue())
+    np.save('./Data/contour_time_acl',contour_time_acl._getvalue())
+
+    '''
+    保存为两个字典：
+    contour_coordinate:顶点的坐标，格式为[[50个lon],[50个lat]],即list中每个元素shape均为(2,50)
+    contour_time:顶点坐标获取的时间
+    索引为顶点坐标在原始数据中对应的序号
+    '''
