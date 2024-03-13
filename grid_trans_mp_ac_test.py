@@ -12,8 +12,9 @@ lonmin=134.875
 lonmax=179.875
 #计算起止时间
 #print(datetime.datetime.strptime('1999-01-01','%Y-%m-%d')-datetime.datetime.strptime('1950-01-01','%Y-%m-%d'))
-times=range(17897,25202) #1999-1-1 to 2018-12-31
+times=range(25202,25567) #2019-1-1 to 2019-12-31
 
+#Test的SLA需要更改，下面的npy与训练集一致
 SLA=Dataset('../copernicus/cmems_obs-sl_glo_phy-ssh_my_allsat-l4-duacs-0.25deg_P1D_1704119807053.nc')
 #print(SLA.variables.keys())
 
@@ -85,8 +86,8 @@ if __name__ == '__main__':
     elapsed_time=end_time-start_time
     print(f"花费时间：{elapsed_time:.2f}s")
 
-    np.save('./Data/grid_acs',grid_total_acs._getvalue())
-    np.save('./Data/grid_acl',grid_total_acl._getvalue())
+    np.save('./Data/grid_acs_test',grid_total_acs._getvalue())
+    np.save('./Data/grid_acl_test',grid_total_acl._getvalue())
     '''
     保存为一个字典：索引为相对1950-01-01偏移的日期，值为该时间下的格点坐标
     '''
