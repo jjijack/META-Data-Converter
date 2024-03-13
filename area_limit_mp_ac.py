@@ -33,7 +33,7 @@ def area_limit_acs(i,contour_coordinate_acs,contour_time_acs,contour_type_acs):
     if (center_lat_acs[i] >= latmin) and (center_lat_acs[i] <= latmax) and (center_lon_acs[i] >= lonmin) and (center_lon_acs[i] <= lonmax): #提取研究范围内数据
         contour_coordinate_acs[i]=[ACS.variables['effective_contour_longitude'][i], ACS.variables['effective_contour_latitude'][i]]
         contour_time_acs[i]=time_acs[i]
-        if i+1==len(time_acs) or track[i] != track[i+1]:  #类型0：涡旋最后终止
+        if i+1==len(time_acs) or track[i] != track[i+1]:  #类型0：涡旋终止
             contour_type_acs[i]=0
         elif center_lon_acs[i+1]>=center_lon_acs[i] and center_lat_acs[i+1]>=center_lat_acs[i]: #类型1：下一刻涡旋落在第一象限
             contour_type_acs[i]=1
@@ -51,10 +51,10 @@ center_lat_acl=ACL.variables['latitude'][:]
 track=ACL.variables['track'][:]
 
 def area_limit_acl(i,contour_coordinate_acl,contour_time_acl,contour_type_acl):
-    if (center_lat_acl[i] >= latmin) and (center_lat_acl[i] <= latmax) and (center_lon_acl[i] >= lonmin) and (center_lon_acl[i] <= lonmax):
+    if (center_lat_acl[i] >= latmin) and (center_lat_acl[i] <= latmax) and (center_lon_acl[i] >= lonmin) and (center_lon_acl[i] <= lonmax):  #提取研究范围内数据
         contour_coordinate_acl[i]=[ACL.variables['effective_contour_longitude'][i], ACL.variables['effective_contour_latitude'][i]]
         contour_time_acl[i]=time_acl[i]
-        if i+1==len(time_acl) or track[i] != track[i+1]:  #类型0：涡旋最后终止
+        if i+1==len(time_acl) or track[i] != track[i+1]:  #类型0：涡旋终止
             contour_type_acl[i]=0
         elif center_lon_acl[i+1]>=center_lon_acl[i] and center_lat_acl[i+1]>=center_lat_acl[i]: #类型1：下一刻涡旋落在第一象限
             contour_type_acl[i]=1
@@ -106,8 +106,9 @@ if __name__ == '__main__':
     np.save('./Data/contour_type_acl',contour_type_acl._getvalue())
 
     '''
-    保存为两个字典：
+    保存为三个字典：
     contour_coordinate:顶点的坐标，格式为[[50个lon],[50个lat]],即list中每个元素shape均为(2,50)
     contour_time:顶点坐标获取的时间
+    contour_time:顶点坐标代表涡旋的类型
     索引为顶点坐标在原始数据中对应的序号
     '''
