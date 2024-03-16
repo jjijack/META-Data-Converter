@@ -14,7 +14,7 @@ lonmax=179.875
 #print(datetime.datetime.strptime('1999-01-01','%Y-%m-%d')-datetime.datetime.strptime('1950-01-01','%Y-%m-%d'))
 times=range(17897,25202) #1999-1-1 to 2018-12-31
 
-SLA=Dataset('../copernicus/cmems_obs-sl_glo_phy-ssh_my_allsat-l4-duacs-0.25deg_P1D_1704119807053.nc')
+SLA=Dataset('../copernicus/cmems_1999-01-01~2018-12-31.nc')
 #print(SLA.variables.keys())
 
 adt=SLA.variables['adt'][:]
@@ -34,6 +34,7 @@ def point_in_polygon(x, y, poly_x, poly_y):    #判断grid坐标是否位于涡�
 '''--------------------Part for ACS--------------------'''
 contour_coordinate_acs=np.load('./Data/contour_coordinate_acs.npy',allow_pickle=True).item()
 contour_time_acs=np.load('./Data/contour_time_acs.npy',allow_pickle=True).item()
+contour_type_acs=np.load('./Data/contour_type_acs.npy',allow_pickle=True).item()
 
 def trans_acs(time,grid_total):
     grid_data = np.zeros((len(maplat), len(maplon)))
@@ -42,13 +43,14 @@ def trans_acs(time,grid_total):
             for i in range(len(maplat)):
                 for j in range(len(maplon)):
                     if point_in_polygon(maplon[j], maplat[i], contour_coordinate_acs[k][0], contour_coordinate_acs[k][1]):
-                        grid_data[i, j] = 1
+                        grid_data[i, j] = contour_type_acs[k]
 
     grid_total[time]=grid_data
     
 '''--------------------Part for ACL--------------------'''
 contour_coordinate_acl=np.load('./Data/contour_coordinate_acl.npy',allow_pickle=True).item()
 contour_time_acl=np.load('./Data/contour_time_acl.npy',allow_pickle=True).item()
+contour_type_acl=np.load('./Data/contour_type_acl.npy',allow_pickle=True).item()
 
 def trans_acl(time,grid_total):
     grid_data = np.zeros((len(maplat), len(maplon)))
@@ -57,7 +59,7 @@ def trans_acl(time,grid_total):
             for i in range(len(maplat)):
                 for j in range(len(maplon)):
                     if point_in_polygon(maplon[j], maplat[i], contour_coordinate_acl[k][0], contour_coordinate_acl[k][1]):
-                        grid_data[i, j] = 1
+                        grid_data[i, j] = contour_type_acl[k]
 
     grid_total[time]=grid_data
     
