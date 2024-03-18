@@ -37,7 +37,7 @@ contour_time_acs=np.load('./Data/contour_time_acs.npy',allow_pickle=True).item()
 contour_type_acs=np.load('./Data/contour_type_acs.npy',allow_pickle=True).item()
 
 def trans_acs(time,grid_total):
-    grid_data = np.zeros((len(maplat), len(maplon)))
+    grid_data = -np.ones((len(maplat), len(maplon)))
     for k in contour_time_acs:
         if contour_time_acs[k]==time:
             for i in range(len(maplat)):
