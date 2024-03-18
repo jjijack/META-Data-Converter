@@ -53,7 +53,7 @@ contour_time_acl=np.load('./Data/contour_time_acl.npy',allow_pickle=True).item()
 contour_type_acl=np.load('./Data/contour_type_acl.npy',allow_pickle=True).item()
 
 def trans_acl(time,grid_total):
-    grid_data = np.zeros((len(maplat), len(maplon)))
+    grid_data = -np.ones((len(maplat), len(maplon)))
     for k in contour_time_acl:
         if contour_time_acl[k]==time:
             for i in range(len(maplat)):
