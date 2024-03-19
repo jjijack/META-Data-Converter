@@ -5,6 +5,7 @@ from netCDF4 import Dataset
 import time as tm
 import multiprocessing as mp
 from functools import partial
+import os
 
 latmin=24.875
 latmax=44.875
@@ -15,6 +16,9 @@ CS=Dataset('META3.1exp_DT_allsat_Cyclonic_short_19930101_20200307.nc')
 #print(CS.variables.keys())
 CL=Dataset('META3.1exp_DT_allsat_Cyclonic_long_19930101_20200307.nc')
 #print(CL.variables.keys())
+
+if not os.path.exists('Data'):
+    os.mkdir('Data')
 
 # SLA=Dataset('../copernicus/cmems_obs-sl_glo_phy-ssh_my_allsat-l4-ducs-0.25deg_P1D_1704119807053.nc')
 # #print(SLA.variables.keys())
