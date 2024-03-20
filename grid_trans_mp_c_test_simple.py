@@ -12,9 +12,9 @@ lonmin=134.875
 lonmax=179.875
 #计算起止时间
 #print(datetime.datetime.strptime('1999-01-01','%Y-%m-%d')-datetime.datetime.strptime('1950-01-01','%Y-%m-%d'))
-times=range(17897,25202) #1999-1-1 to 2018-12-31
+times=range(25202,25567) #2019-1-1 to 2019-12-31
 
-SLA=Dataset('../copernicus/cmems_1999-01-01~2018-12-31.nc')
+SLA=Dataset('../copernicus/cmems_2019-01-01~2019-12-31.nc')
 #print(SLA.variables.keys())
 
 adt=SLA.variables['adt'][:]
@@ -31,35 +31,33 @@ def point_in_polygon(x, y, poly_x, poly_y):    #判断grid坐标是否位于涡�
         j = i
     return inside
 
-'''--------------------Part for ACS--------------------'''
-contour_coordinate_acs=np.load('./Data/contour_coordinate_acs.npy',allow_pickle=True).item()
-contour_time_acs=np.load('./Data/contour_time_acs.npy',allow_pickle=True).item()
-contour_type_acs=np.load('./Data/contour_type_acs.npy',allow_pickle=True).item()
+'''--------------------Part for CS--------------------'''
+contour_coordinate_cs=np.load('./Data/contour_coordinate_cs.npy',allow_pickle=True).item()
+contour_time_cs=np.load('./Data/contour_time_cs.npy',allow_pickle=True).item()
 
-def trans_acs(time,grid_total):
-    grid_data = -np.ones((len(maplat), len(maplon)))
-    for k in contour_time_acs:
-        if contour_time_acs[k]==time:
+def trans_cs(time,grid_total):
+    grid_data = np.zeros((len(maplat), len(maplon)))
+    for k in contour_time_cs:
+        if contour_time_cs[k]==time:
             for i in range(len(maplat)):
                 for j in range(len(maplon)):
-                    if point_in_polygon(maplon[j], maplat[i], contour_coordinate_acs[k][0], contour_coordinate_acs[k][1]):
-                        grid_data[i, j] = contour_type_acs[k]
+                    if point_in_polygon(maplon[j], maplat[i], contour_coordinate_cs[k][0], contour_coordinate_cs[k][1]):
+                        grid_data[i, j] = 2
 
     grid_total[time]=grid_data
     
-'''--------------------Part for ACL--------------------'''
-contour_coordinate_acl=np.load('./Data/contour_coordinate_acl.npy',allow_pickle=True).item()
-contour_time_acl=np.load('./Data/contour_time_acl.npy',allow_pickle=True).item()
-contour_type_acl=np.load('./Data/contour_type_acl.npy',allow_pickle=True).item()
+'''--------------------Part for CL--------------------'''
+contour_coordinate_cl=np.load('./Data/contour_coordinate_cl.npy',allow_pickle=True).item()
+contour_time_cl=np.load('./Data/contour_time_cl.npy',allow_pickle=True).item()
 
-def trans_acl(time,grid_total):
-    grid_data = -np.ones((len(maplat), len(maplon)))
-    for k in contour_time_acl:
-        if contour_time_acl[k]==time:
+def trans_cl(time,grid_total):
+    grid_data = np.zeros((len(maplat), len(maplon)))
+    for k in contour_time_cl:
+        if contour_time_cl[k]==time:
             for i in range(len(maplat)):
                 for j in range(len(maplon)):
-                    if point_in_polygon(maplon[j], maplat[i], contour_coordinate_acl[k][0], contour_coordinate_acl[k][1]):
-                        grid_data[i, j] = contour_type_acl[k]
+                    if point_in_polygon(maplon[j], maplat[i], contour_coordinate_cl[k][0], contour_coordinate_cl[k][1]):
+                        grid_data[i, j] = 2
 
     grid_total[time]=grid_data
     
@@ -67,19 +65,19 @@ def trans_acl(time,grid_total):
 if __name__ == '__main__':
     __spec__ = None
     manager=mp.Manager()
-    grid_total_acs=manager.dict()
-    grid_total_acl=manager.dict()
+    grid_total_cs=manager.dict()
+    grid_total_cl=manager.dict()
 
     start_time = tm.time()
 
     num_processes = mp.cpu_count()
     pool = mp.Pool(processes=num_processes)
-    pool.map(partial(trans_acs, grid_total=grid_total_acs), times)
+    pool.map(partial(trans_cs, grid_total=grid_total_cs), times)
     pool.close()
     pool.join()
 
     pool = mp.Pool(processes=num_processes)
-    pool.map(partial(trans_acl, grid_total=grid_total_acl), times)
+    pool.map(partial(trans_cl, grid_total=grid_total_cl), times)
     pool.close()
     pool.join()
 
@@ -87,8 +85,8 @@ if __name__ == '__main__':
     elapsed_time=end_time-start_time
     print(f"花费时间：{elapsed_time:.2f}s")
 
-    np.save('./Data/grid_acs',grid_total_acs._getvalue())
-    np.save('./Data/grid_acl',grid_total_acl._getvalue())
+    np.save('./Data/grid_cs_test_simple',grid_total_cs._getvalue())
+    np.save('./Data/grid_cl_test_simple',grid_total_cl._getvalue())
     '''
     保存为一个字典：索引为相对1950-01-01偏移的日期，值为该时间下的格点坐标
     '''

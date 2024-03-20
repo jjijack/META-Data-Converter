@@ -12,9 +12,9 @@ lonmin=134.875
 lonmax=179.875
 #计算起止时间
 #print(datetime.datetime.strptime('1999-01-01','%Y-%m-%d')-datetime.datetime.strptime('1950-01-01','%Y-%m-%d'))
-times=range(25202,25567) #2019-1-1 to 2019-12-31
+times=range(17897,25202) #1999-1-1 to 2018-12-31
 
-SLA=Dataset('../copernicus/cmems_2019-01-01~2019-12-31.nc')
+SLA=Dataset('../copernicus/cmems_1999-01-01~2018-12-31.nc')
 #print(SLA.variables.keys())
 
 adt=SLA.variables['adt'][:]
@@ -34,32 +34,30 @@ def point_in_polygon(x, y, poly_x, poly_y):    #判断grid坐标是否位于涡�
 '''--------------------Part for CS--------------------'''
 contour_coordinate_cs=np.load('./Data/contour_coordinate_cs.npy',allow_pickle=True).item()
 contour_time_cs=np.load('./Data/contour_time_cs.npy',allow_pickle=True).item()
-contour_type_cs=np.load('./Data/contour_type_cs.npy',allow_pickle=True).item()
 
 def trans_cs(time,grid_total):
-    grid_data = -np.ones((len(maplat), len(maplon)))
+    grid_data = np.zeros((len(maplat), len(maplon)))
     for k in contour_time_cs:
         if contour_time_cs[k]==time:
             for i in range(len(maplat)):
                 for j in range(len(maplon)):
                     if point_in_polygon(maplon[j], maplat[i], contour_coordinate_cs[k][0], contour_coordinate_cs[k][1]):
-                        grid_data[i, j] = contour_type_cs[k]
+                        grid_data[i, j] = 2
 
     grid_total[time]=grid_data
     
 '''--------------------Part for CL--------------------'''
 contour_coordinate_cl=np.load('./Data/contour_coordinate_cl.npy',allow_pickle=True).item()
 contour_time_cl=np.load('./Data/contour_time_cl.npy',allow_pickle=True).item()
-contour_type_cl=np.load('./Data/contour_type_cl.npy',allow_pickle=True).item()
 
 def trans_cl(time,grid_total):
-    grid_data = -np.ones((len(maplat), len(maplon)))
+    grid_data = np.zeros((len(maplat), len(maplon)))
     for k in contour_time_cl:
         if contour_time_cl[k]==time:
             for i in range(len(maplat)):
                 for j in range(len(maplon)):
                     if point_in_polygon(maplon[j], maplat[i], contour_coordinate_cl[k][0], contour_coordinate_cl[k][1]):
-                        grid_data[i, j] = contour_type_cl[k]
+                        grid_data[i, j] = 2
 
     grid_total[time]=grid_data
     
@@ -87,8 +85,8 @@ if __name__ == '__main__':
     elapsed_time=end_time-start_time
     print(f"花费时间：{elapsed_time:.2f}s")
 
-    np.save('./Data/grid_cs_test',grid_total_cs._getvalue())
-    np.save('./Data/grid_cl_test',grid_total_cl._getvalue())
+    np.save('./Data/grid_cs_simple',grid_total_cs._getvalue())
+    np.save('./Data/grid_cl_simple',grid_total_cl._getvalue())
     '''
     保存为一个字典：索引为相对1950-01-01偏移的日期，值为该时间下的格点坐标
     '''

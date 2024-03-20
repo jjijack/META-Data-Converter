@@ -31,35 +31,33 @@ def point_in_polygon(x, y, poly_x, poly_y):    #判断grid坐标是否位于涡�
         j = i
     return inside
 
-'''--------------------Part for CS--------------------'''
-contour_coordinate_cs=np.load('./Data/contour_coordinate_cs.npy',allow_pickle=True).item()
-contour_time_cs=np.load('./Data/contour_time_cs.npy',allow_pickle=True).item()
-contour_type_cs=np.load('./Data/contour_type_cs.npy',allow_pickle=True).item()
+'''--------------------Part for ACS--------------------'''
+contour_coordinate_acs=np.load('./Data/contour_coordinate_acs.npy',allow_pickle=True).item()
+contour_time_acs=np.load('./Data/contour_time_acs.npy',allow_pickle=True).item()
 
-def trans_cs(time,grid_total):
-    grid_data = -np.ones((len(maplat), len(maplon)))
-    for k in contour_time_cs:
-        if contour_time_cs[k]==time:
+def trans_acs(time,grid_total):
+    grid_data = np.zeros((len(maplat), len(maplon)))
+    for k in contour_time_acs:
+        if contour_time_acs[k]==time:
             for i in range(len(maplat)):
                 for j in range(len(maplon)):
-                    if point_in_polygon(maplon[j], maplat[i], contour_coordinate_cs[k][0], contour_coordinate_cs[k][1]):
-                        grid_data[i, j] = contour_type_cs[k]
+                    if point_in_polygon(maplon[j], maplat[i], contour_coordinate_acs[k][0], contour_coordinate_acs[k][1]):
+                        grid_data[i, j] = 1
 
     grid_total[time]=grid_data
     
-'''--------------------Part for CL--------------------'''
-contour_coordinate_cl=np.load('./Data/contour_coordinate_cl.npy',allow_pickle=True).item()
-contour_time_cl=np.load('./Data/contour_time_cl.npy',allow_pickle=True).item()
-contour_type_cl=np.load('./Data/contour_type_cl.npy',allow_pickle=True).item()
+'''--------------------Part for ACL--------------------'''
+contour_coordinate_acl=np.load('./Data/contour_coordinate_acl.npy',allow_pickle=True).item()
+contour_time_acl=np.load('./Data/contour_time_acl.npy',allow_pickle=True).item()
 
-def trans_cl(time,grid_total):
-    grid_data = -np.ones((len(maplat), len(maplon)))
-    for k in contour_time_cl:
-        if contour_time_cl[k]==time:
+def trans_acl(time,grid_total):
+    grid_data = np.zeros((len(maplat), len(maplon)))
+    for k in contour_time_acl:
+        if contour_time_acl[k]==time:
             for i in range(len(maplat)):
                 for j in range(len(maplon)):
-                    if point_in_polygon(maplon[j], maplat[i], contour_coordinate_cl[k][0], contour_coordinate_cl[k][1]):
-                        grid_data[i, j] = contour_type_cl[k]
+                    if point_in_polygon(maplon[j], maplat[i], contour_coordinate_acl[k][0], contour_coordinate_acl[k][1]):
+                        grid_data[i, j] = 1
 
     grid_total[time]=grid_data
     
@@ -67,19 +65,19 @@ def trans_cl(time,grid_total):
 if __name__ == '__main__':
     __spec__ = None
     manager=mp.Manager()
-    grid_total_cs=manager.dict()
-    grid_total_cl=manager.dict()
+    grid_total_acs=manager.dict()
+    grid_total_acl=manager.dict()
 
     start_time = tm.time()
 
     num_processes = mp.cpu_count()
     pool = mp.Pool(processes=num_processes)
-    pool.map(partial(trans_cs, grid_total=grid_total_cs), times)
+    pool.map(partial(trans_acs, grid_total=grid_total_acs), times)
     pool.close()
     pool.join()
 
     pool = mp.Pool(processes=num_processes)
-    pool.map(partial(trans_cl, grid_total=grid_total_cl), times)
+    pool.map(partial(trans_acl, grid_total=grid_total_acl), times)
     pool.close()
     pool.join()
 
@@ -87,8 +85,8 @@ if __name__ == '__main__':
     elapsed_time=end_time-start_time
     print(f"花费时间：{elapsed_time:.2f}s")
 
-    np.save('./Data/grid_cs',grid_total_cs._getvalue())
-    np.save('./Data/grid_cl',grid_total_cl._getvalue())
+    np.save('./Data/grid_acs_simple',grid_total_acs._getvalue())
+    np.save('./Data/grid_acl_simple',grid_total_acl._getvalue())
     '''
     保存为一个字典：索引为相对1950-01-01偏移的日期，值为该时间下的格点坐标
     '''
