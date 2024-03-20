@@ -113,6 +113,6 @@ if __name__ == '__main__':
     保存为三个字典：
     contour_coordinate:顶点的坐标，格式为[[50个lon],[50个lat]],即list中每个元素shape均为(2,50)
     contour_time:顶点坐标获取的时间
-    contour_time:顶点坐标代表涡旋的类型
+    contour_type:顶点坐标代表涡旋的类型
     索引为顶点坐标在原始数据中对应的序号
     '''
