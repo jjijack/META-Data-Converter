@@ -60,6 +60,21 @@ def trans_acl(time,grid_total):
                         grid_data[i, j] = 1
 
     grid_total[time]=grid_data
+
+'''--------------------Part for ACU--------------------'''
+contour_coordinate_acu=np.load('./Data/contour_coordinate_acu.npy',allow_pickle=True).item()
+contour_time_acu=np.load('./Data/contour_time_acu.npy',allow_pickle=True).item()
+
+def trans_acu(time,grid_total):
+    grid_data = np.zeros((len(maplat), len(maplon)))
+    for k in contour_time_acu:
+        if contour_time_acu[k]==time:
+            for i in range(len(maplat)):
+                for j in range(len(maplon)):
+                    if point_in_polygon(maplon[j], maplat[i], contour_coordinate_acu[k][0], contour_coordinate_acu[k][1]):
+                        grid_data[i, j] = 1
+
+    grid_total[time]=grid_data
     
 '''--------------------Multiprocessing--------------------'''
 if __name__ == '__main__':
@@ -67,6 +82,7 @@ if __name__ == '__main__':
     manager=mp.Manager()
     grid_total_acs=manager.dict()
     grid_total_acl=manager.dict()
+    grid_total_acu=manager.dict()
 
     start_time = tm.time()
 
@@ -81,12 +97,18 @@ if __name__ == '__main__':
     pool.close()
     pool.join()
 
+    pool = mp.Pool(processes=num_processes)
+    pool.map(partial(trans_acu, grid_total=grid_total_acu), times)
+    pool.close()
+    pool.join()
+
     end_time=tm.time()
     elapsed_time=end_time-start_time
     print(f"花费时间：{elapsed_time:.2f}s")
 
     np.save('./Data/grid_acs_simple',grid_total_acs._getvalue())
     np.save('./Data/grid_acl_simple',grid_total_acl._getvalue())
+    np.save('./Data/grid_acu_simple',grid_total_acu._getvalue())
     '''
     保存为一个字典：索引为相对1950-01-01偏移的日期，值为该时间下的格点坐标
     '''

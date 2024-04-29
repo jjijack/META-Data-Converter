@@ -16,6 +16,7 @@ CS=Dataset('META3.1exp_DT_allsat_Cyclonic_short_19930101_20200307.nc')
 #print(CS.variables.keys())
 CL=Dataset('META3.1exp_DT_allsat_Cyclonic_long_19930101_20200307.nc')
 #print(CL.variables.keys())
+CU=Dataset('META3.1exp_DT_allsat_Cyclonic_untracked_19930101_20200307.nc')
 
 if not os.path.exists('Data'):
     os.mkdir('Data')
@@ -31,7 +32,6 @@ if not os.path.exists('Data'):
 time_cs=CS.variables['time'][:]
 center_lon_cs=CS.variables['longitude'][:]
 center_lat_cs=CS.variables['latitude'][:]
-track=CS.variables['track'][:]
 
 def area_limit_cs(i,contour_coordinate_cs,contour_time_cs):
     if (center_lat_cs[i] >= latmin) and (center_lat_cs[i] <= latmax) and (center_lon_cs[i] >= lonmin) and (center_lon_cs[i] <= lonmax):  #提取研究范围内数据
@@ -42,12 +42,21 @@ def area_limit_cs(i,contour_coordinate_cs,contour_time_cs):
 time_cl=CL.variables['time'][:]
 center_lon_cl=CL.variables['longitude'][:]
 center_lat_cl=CL.variables['latitude'][:]
-track=CL.variables['track'][:]
 
 def area_limit_cl(i,contour_coordinate_cl,contour_time_cl):
     if (center_lat_cl[i] >= latmin) and (center_lat_cl[i] <= latmax) and (center_lon_cl[i] >= lonmin) and (center_lon_cl[i] <= lonmax):  #提取研究范围内数据
         contour_coordinate_cl[i]=[CL.variables['effective_contour_longitude'][i], CL.variables['effective_contour_latitude'][i]]
         contour_time_cl[i]=time_cl[i]
+
+'''--------------------Part for CU--------------------'''
+time_cu=CU.variables['time'][:]
+center_lon_cu=CU.variables['longitude'][:]
+center_lat_cu=CU.variables['latitude'][:]
+
+def area_limit_cu(i,contour_coordinate_cu,contour_time_cu):
+    if (center_lat_cu[i] >= latmin) and (center_lat_cu[i] <= latmax) and (center_lon_cu[i] >= lonmin) and (center_lon_cu[i] <= lonmax):  #提取研究范围内数据
+        contour_coordinate_cu[i]=[CU.variables['effective_contour_longitude'][i], CU.variables['effective_contour_latitude'][i]]
+        contour_time_cu[i]=time_cu[i]
     
 '''--------------------Multiprocessing--------------------'''
 if __name__ == '__main__':
@@ -59,6 +68,9 @@ if __name__ == '__main__':
     contour_coordinate_cl = manager.dict()
     contour_time_cl = manager.dict()
 
+    contour_coordinate_cu = manager.dict()
+    contour_time_cu = manager.dict()
+
     start_time = tm.time()
 
     num_processes = mp.cpu_count()
@@ -69,6 +81,11 @@ if __name__ == '__main__':
 
     pool = mp.Pool(processes=num_processes)
     pool.map(partial(area_limit_cl, contour_coordinate_cl=contour_coordinate_cl,contour_time_cl=contour_time_cl), range(len(time_cl)))
+    pool.close()
+    pool.join()
+
+    pool = mp.Pool(processes=num_processes)
+    pool.map(partial(area_limit_cu, contour_coordinate_cu=contour_coordinate_cu,contour_time_cu=contour_time_cu), range(len(time_cu)))
     pool.close()
     pool.join()
 
@@ -84,6 +101,9 @@ if __name__ == '__main__':
 
     np.save('./Data/contour_coordinate_cl',contour_coordinate_cl._getvalue())
     np.save('./Data/contour_time_cl',contour_time_cl._getvalue())
+
+    np.save('./Data/contour_coordinate_cu',contour_coordinate_cu._getvalue())
+    np.save('./Data/contour_time_cu',contour_time_cu._getvalue())
 
     '''
     保存为两个字典：
