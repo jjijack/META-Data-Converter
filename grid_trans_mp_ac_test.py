@@ -127,9 +127,9 @@ if __name__ == '__main__':
     elapsed_time=end_time-start_time
     print(f"花费时间：{elapsed_time:.2f}s")
 
-    np.save('./Data/grid_acs_test_simple',grid_total_acs._getvalue())
-    np.save('./Data/grid_acl_test_simple',grid_total_acl._getvalue())
-    np.save('./Data/grid_acu_test_simple',grid_total_acu._getvalue())
+    np.save('./Data/grid_acs_test',grid_total_acs._getvalue())
+    np.save('./Data/grid_acl_test',grid_total_acl._getvalue())
+    np.save('./Data/grid_acu_test',grid_total_acu._getvalue())
     '''
     保存为一个字典：索引为相对1950-01-01偏移的日期，值为该时间下的格点坐标
     '''
