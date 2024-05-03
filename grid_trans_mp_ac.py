@@ -19,7 +19,9 @@ SLA=Dataset('../copernicus/cmems_1999-01-01~2018-12-31.nc')
 
 adt=SLA.variables['adt'][:]
 maplat=SLA.variables['latitude'][:]
+maplat=np.asarray(maplat)
 maplon=SLA.variables['longitude'][:]
+maplon=np.asarray(maplon)
 
 def point_in_polygon(x, y, poly_x, poly_y):    #判断grid坐标是否位于涡旋边界内部，输入grid lon, grid lat, contour lon, contour lat
     num_vertices = len(poly_x)
@@ -31,35 +33,67 @@ def point_in_polygon(x, y, poly_x, poly_y):    #判断grid坐标是否位于涡�
         j = i
     return inside
 
+def find_nearest(array,value):      #寻找与涡旋中心点经纬度坐标距离最近的地图网格
+    idx=np.abs(array-value).argmin()
+    return idx
+
 '''--------------------Part for ACS--------------------'''
 contour_coordinate_acs=np.load('./Data/contour_coordinate_acs.npy',allow_pickle=True).item()
 contour_time_acs=np.load('./Data/contour_time_acs.npy',allow_pickle=True).item()
-contour_type_acs=np.load('./Data/contour_type_acs.npy',allow_pickle=True).item()
+center_acs=np.load('./Data/center_acs.npy',allow_pickle=True).item()
 
 def trans_acs(time,grid_total):
-    grid_data = -np.ones((len(maplat), len(maplon)))
+    grid_data = np.zeros((len(maplat), len(maplon)))
     for k in contour_time_acs:
         if contour_time_acs[k]==time:
             for i in range(len(maplat)):
                 for j in range(len(maplon)):
                     if point_in_polygon(maplon[j], maplat[i], contour_coordinate_acs[k][0], contour_coordinate_acs[k][1]):
-                        grid_data[i, j] = contour_type_acs[k]
+                        grid_data[i, j] = 1
+
+            cj=find_nearest(maplon,center_acs[k][0])
+            ci=find_nearest(maplat,center_acs[k][1])
+            grid_data[ci, cj] = 2
 
     grid_total[time]=grid_data
     
 '''--------------------Part for ACL--------------------'''
 contour_coordinate_acl=np.load('./Data/contour_coordinate_acl.npy',allow_pickle=True).item()
 contour_time_acl=np.load('./Data/contour_time_acl.npy',allow_pickle=True).item()
-contour_type_acl=np.load('./Data/contour_type_acl.npy',allow_pickle=True).item()
+center_acl=np.load('./Data/center_acl.npy',allow_pickle=True).item()
 
 def trans_acl(time,grid_total):
-    grid_data = -np.ones((len(maplat), len(maplon)))
+    grid_data = np.zeros((len(maplat), len(maplon)))
     for k in contour_time_acl:
         if contour_time_acl[k]==time:
             for i in range(len(maplat)):
                 for j in range(len(maplon)):
                     if point_in_polygon(maplon[j], maplat[i], contour_coordinate_acl[k][0], contour_coordinate_acl[k][1]):
-                        grid_data[i, j] = contour_type_acl[k]
+                        grid_data[i, j] = 1
+
+            cj=find_nearest(maplon,center_acl[k][0])
+            ci=find_nearest(maplat,center_acl[k][1])
+            grid_data[ci, cj] = 2
+
+    grid_total[time]=grid_data
+
+'''--------------------Part for ACU--------------------'''
+contour_coordinate_acu=np.load('./Data/contour_coordinate_acu.npy',allow_pickle=True).item()
+contour_time_acu=np.load('./Data/contour_time_acu.npy',allow_pickle=True).item()
+center_acu=np.load('./Data/center_acu.npy',allow_pickle=True).item()
+
+def trans_acu(time,grid_total):
+    grid_data = np.zeros((len(maplat), len(maplon)))
+    for k in contour_time_acu:
+        if contour_time_acu[k]==time:
+            for i in range(len(maplat)):
+                for j in range(len(maplon)):
+                    if point_in_polygon(maplon[j], maplat[i], contour_coordinate_acu[k][0], contour_coordinate_acu[k][1]):
+                        grid_data[i, j] = 1
+
+            cj=find_nearest(maplon,center_acu[k][0])
+            ci=find_nearest(maplat,center_acu[k][1])
+            grid_data[ci, cj] = 2
 
     grid_total[time]=grid_data
     
@@ -69,6 +103,7 @@ if __name__ == '__main__':
     manager=mp.Manager()
     grid_total_acs=manager.dict()
     grid_total_acl=manager.dict()
+    grid_total_acu=manager.dict()
 
     start_time = tm.time()
 
@@ -83,12 +118,18 @@ if __name__ == '__main__':
     pool.close()
     pool.join()
 
+    pool = mp.Pool(processes=num_processes)
+    pool.map(partial(trans_acu, grid_total=grid_total_acu), times)
+    pool.close()
+    pool.join()
+
     end_time=tm.time()
     elapsed_time=end_time-start_time
     print(f"花费时间：{elapsed_time:.2f}s")
 
     np.save('./Data/grid_acs',grid_total_acs._getvalue())
     np.save('./Data/grid_acl',grid_total_acl._getvalue())
+    np.save('./Data/grid_acu',grid_total_acu._getvalue())
     '''
     保存为一个字典：索引为相对1950-01-01偏移的日期，值为该时间下的格点坐标
     '''

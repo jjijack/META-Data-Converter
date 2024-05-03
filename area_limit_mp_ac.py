@@ -16,6 +16,7 @@ ACS=Dataset('META3.1exp_DT_allsat_Anticyclonic_short_19930101_20200307.nc')
 #print(ACS.variables.keys())
 ACL=Dataset('META3.1exp_DT_allsat_Anticyclonic_long_19930101_20200307.nc')
 #print(ACL.variables.keys())
+ACU=Dataset('META3.1exp_DT_allsat_Anticyclonic_untracked_19930101_20200307.nc')
 
 if not os.path.exists('Data'):
     os.mkdir('Data')
@@ -31,43 +32,34 @@ if not os.path.exists('Data'):
 time_acs=ACS.variables['time'][:]
 center_lon_acs=ACS.variables['longitude'][:]
 center_lat_acs=ACS.variables['latitude'][:]
-track=ACS.variables['track'][:]
 
-def area_limit_acs(i,contour_coordinate_acs,contour_time_acs,contour_type_acs):
+def area_limit_acs(i,contour_coordinate_acs,contour_time_acs,center_acs):
     if (center_lat_acs[i] >= latmin) and (center_lat_acs[i] <= latmax) and (center_lon_acs[i] >= lonmin) and (center_lon_acs[i] <= lonmax): #提取研究范围内数据
         contour_coordinate_acs[i]=[ACS.variables['effective_contour_longitude'][i], ACS.variables['effective_contour_latitude'][i]]
         contour_time_acs[i]=time_acs[i]
-        if i+1==len(time_acs) or track[i] != track[i+1]:  #类型0：涡旋终止
-            contour_type_acs[i]=0
-        elif center_lon_acs[i+1]>=center_lon_acs[i] and center_lat_acs[i+1]>=center_lat_acs[i]: #类型1：下一刻涡旋落在第一象限
-            contour_type_acs[i]=1
-        elif center_lat_acs[i+1]>=center_lat_acs[i]:    #类型2：下一刻涡旋落在第二象限
-            contour_type_acs[i]=2
-        elif center_lon_acs[i+1]<=center_lon_acs[i]:    #类型3：下一刻涡旋落在第三象限
-            contour_type_acs[i]=3
-        else:
-            contour_type_acs[i]=4   #类型4：下一刻涡旋落在第四象限
+        center_acs[i]=[center_lon_acs[i],center_lat_acs[i]]
 
 '''--------------------Part for ACL--------------------'''
 time_acl=ACL.variables['time'][:]
 center_lon_acl=ACL.variables['longitude'][:]
 center_lat_acl=ACL.variables['latitude'][:]
-track=ACL.variables['track'][:]
 
-def area_limit_acl(i,contour_coordinate_acl,contour_time_acl,contour_type_acl):
+def area_limit_acl(i,contour_coordinate_acl,contour_time_acl,center_acl):
     if (center_lat_acl[i] >= latmin) and (center_lat_acl[i] <= latmax) and (center_lon_acl[i] >= lonmin) and (center_lon_acl[i] <= lonmax):  #提取研究范围内数据
         contour_coordinate_acl[i]=[ACL.variables['effective_contour_longitude'][i], ACL.variables['effective_contour_latitude'][i]]
         contour_time_acl[i]=time_acl[i]
-        if i+1==len(time_acl) or track[i] != track[i+1]:  #类型0：涡旋终止
-            contour_type_acl[i]=0
-        elif center_lon_acl[i+1]>=center_lon_acl[i] and center_lat_acl[i+1]>=center_lat_acl[i]: #类型1：下一刻涡旋落在第一象限
-            contour_type_acl[i]=1
-        elif center_lat_acl[i+1]>=center_lat_acl[i]:    #类型2：下一刻涡旋落在第二象限
-            contour_type_acl[i]=2
-        elif center_lon_acl[i+1]<=center_lon_acl[i]:    #类型3：下一刻涡旋落在第三象限
-            contour_type_acl[i]=3
-        else:
-            contour_type_acl[i]=4   #类型4：下一刻涡旋落在第四象限
+        center_acl[i]=[center_lon_acl[i],center_lat_acl[i]]
+
+'''--------------------Part for ACU--------------------'''
+time_acu=ACU.variables['time'][:]
+center_lon_acu=ACU.variables['longitude'][:]
+center_lat_acu=ACU.variables['latitude'][:]
+
+def area_limit_acu(i,contour_coordinate_acu,contour_time_acu,center_acu):
+    if (center_lat_acu[i] >= latmin) and (center_lat_acu[i] <= latmax) and (center_lon_acu[i] >= lonmin) and (center_lon_acu[i] <= lonmax):  #提取研究范围内数据
+        contour_coordinate_acu[i]=[ACU.variables['effective_contour_longitude'][i], ACU.variables['effective_contour_latitude'][i]]
+        contour_time_acu[i]=time_acu[i]
+        center_acu[i]=[center_lon_acu[i],center_lat_acu[i]]
     
 '''--------------------Multiprocessing--------------------'''
 if __name__ == '__main__':
@@ -75,22 +67,31 @@ if __name__ == '__main__':
     manager=mp.Manager()
     contour_coordinate_acs = manager.dict()
     contour_time_acs = manager.dict()
-    contour_type_acs = manager.dict()
+    center_acs = manager.dict()
 
     contour_coordinate_acl = manager.dict()
     contour_time_acl = manager.dict()
-    contour_type_acl = manager.dict()
+    center_acl = manager.dict()
+
+    contour_coordinate_acu = manager.dict()
+    contour_time_acu = manager.dict()
+    center_acu = manager.dict()
 
     start_time = tm.time()
 
     num_processes = mp.cpu_count()
     pool = mp.Pool(processes=num_processes)
-    pool.map(partial(area_limit_acs, contour_coordinate_acs=contour_coordinate_acs,contour_time_acs=contour_time_acs,contour_type_acs=contour_type_acs), range(len(time_acs)))
+    pool.map(partial(area_limit_acs, contour_coordinate_acs=contour_coordinate_acs,contour_time_acs=contour_time_acs,center_acs=center_acs), range(len(time_acs)))
     pool.close()
     pool.join()
 
     pool = mp.Pool(processes=num_processes)
-    pool.map(partial(area_limit_acl, contour_coordinate_acl=contour_coordinate_acl,contour_time_acl=contour_time_acl,contour_type_acl=contour_type_acl), range(len(time_acl)))
+    pool.map(partial(area_limit_acl, contour_coordinate_acl=contour_coordinate_acl,contour_time_acl=contour_time_acl,center_acl=center_acl), range(len(time_acl)))
+    pool.close()
+    pool.join()
+
+    pool = mp.Pool(processes=num_processes)
+    pool.map(partial(area_limit_acu, contour_coordinate_acu=contour_coordinate_acu,contour_time_acu=contour_time_acu,center_acu=center_acu), range(len(time_acu)))
     pool.close()
     pool.join()
 
@@ -103,16 +104,20 @@ if __name__ == '__main__':
     
     np.save('./Data/contour_coordinate_acs',contour_coordinate_acs._getvalue())
     np.save('./Data/contour_time_acs',contour_time_acs._getvalue())
-    np.save('./Data/contour_type_acs',contour_type_acs._getvalue())
+    np.save('./Data/center_acs',center_acs._getvalue())
 
     np.save('./Data/contour_coordinate_acl',contour_coordinate_acl._getvalue())
     np.save('./Data/contour_time_acl',contour_time_acl._getvalue())
-    np.save('./Data/contour_type_acl',contour_type_acl._getvalue())
+    np.save('./Data/center_acl',center_acl._getvalue())
+
+    np.save('./Data/contour_coordinate_acu',contour_coordinate_acu._getvalue())
+    np.save('./Data/contour_time_acu',contour_time_acu._getvalue())
+    np.save('./Data/center_acu',center_acu._getvalue())
 
     '''
     保存为三个字典：
     contour_coordinate:顶点的坐标，格式为[[50个lon],[50个lat]],即list中每个元素shape均为(2,50)
     contour_time:顶点坐标获取的时间
-    contour_type:顶点坐标代表涡旋的类型
+    center_acu:中心的坐标，格式为[lon,lat]
     索引为顶点坐标在原始数据中对应的序号
     '''
