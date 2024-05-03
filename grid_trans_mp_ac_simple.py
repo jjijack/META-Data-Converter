@@ -19,7 +19,9 @@ SLA=Dataset('../copernicus/cmems_1999-01-01~2018-12-31.nc')
 
 adt=SLA.variables['adt'][:]
 maplat=SLA.variables['latitude'][:]
+maplat=np.asarray(maplat)
 maplon=SLA.variables['longitude'][:]
+maplon=np.asarray(maplon)
 
 def point_in_polygon(x, y, poly_x, poly_y):    #判断grid坐标是否位于涡旋边界内部，输入grid lon, grid lat, contour lon, contour lat
     num_vertices = len(poly_x)
@@ -31,9 +33,14 @@ def point_in_polygon(x, y, poly_x, poly_y):    #判断grid坐标是否位于涡�
         j = i
     return inside
 
+def find_nearest(array,value):      #寻找与涡旋中心点经纬度坐标距离最近的地图网格
+    idx=np.abs(array-value).argmin()
+    return idx
+
 '''--------------------Part for ACS--------------------'''
 contour_coordinate_acs=np.load('./Data/contour_coordinate_acs.npy',allow_pickle=True).item()
 contour_time_acs=np.load('./Data/contour_time_acs.npy',allow_pickle=True).item()
+center_acs=np.load('./Data/center_acs.npy',allow_pickle=True).item()
 
 def trans_acs(time,grid_total):
     grid_data = np.zeros((len(maplat), len(maplon)))
@@ -44,11 +51,16 @@ def trans_acs(time,grid_total):
                     if point_in_polygon(maplon[j], maplat[i], contour_coordinate_acs[k][0], contour_coordinate_acs[k][1]):
                         grid_data[i, j] = 1
 
+            cj=find_nearest(maplon,center_acs[k][0])
+            ci=find_nearest(maplat,center_acs[k][1])
+            grid_data[ci, cj] = 2
+
     grid_total[time]=grid_data
     
 '''--------------------Part for ACL--------------------'''
 contour_coordinate_acl=np.load('./Data/contour_coordinate_acl.npy',allow_pickle=True).item()
 contour_time_acl=np.load('./Data/contour_time_acl.npy',allow_pickle=True).item()
+center_acl=np.load('./Data/center_acl.npy',allow_pickle=True).item()
 
 def trans_acl(time,grid_total):
     grid_data = np.zeros((len(maplat), len(maplon)))
@@ -59,11 +71,16 @@ def trans_acl(time,grid_total):
                     if point_in_polygon(maplon[j], maplat[i], contour_coordinate_acl[k][0], contour_coordinate_acl[k][1]):
                         grid_data[i, j] = 1
 
+            cj=find_nearest(maplon,center_acl[k][0])
+            ci=find_nearest(maplat,center_acl[k][1])
+            grid_data[ci, cj] = 2
+
     grid_total[time]=grid_data
 
 '''--------------------Part for ACU--------------------'''
 contour_coordinate_acu=np.load('./Data/contour_coordinate_acu.npy',allow_pickle=True).item()
 contour_time_acu=np.load('./Data/contour_time_acu.npy',allow_pickle=True).item()
+center_acu=np.load('./Data/center_acu.npy',allow_pickle=True).item()
 
 def trans_acu(time,grid_total):
     grid_data = np.zeros((len(maplat), len(maplon)))
@@ -73,6 +90,10 @@ def trans_acu(time,grid_total):
                 for j in range(len(maplon)):
                     if point_in_polygon(maplon[j], maplat[i], contour_coordinate_acu[k][0], contour_coordinate_acu[k][1]):
                         grid_data[i, j] = 1
+
+            cj=find_nearest(maplon,center_acu[k][0])
+            ci=find_nearest(maplat,center_acu[k][1])
+            grid_data[ci, cj] = 2
 
     grid_total[time]=grid_data
     
